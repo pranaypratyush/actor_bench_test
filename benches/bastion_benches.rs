@@ -5,6 +5,11 @@ use std::thread::sleep;
 use std::time::Duration;
 use tracing::error;
 
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
 async fn child_task(ctx: BastionContext) -> Result<(), ()> {
     loop {
         MessageHandler::new(ctx.recv().await?)

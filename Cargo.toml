@@ -12,6 +12,7 @@ coerce = "0.8.7"
 criterion = "0.4"
 tokio = { version = "1.27.0", features = ["full"] }
 tracing = "0.1.37"
+mimalloc = { version = "*", default-features = false }
 
 [[bench]]
 name = "bastion_benches"

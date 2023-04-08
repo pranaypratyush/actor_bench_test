@@ -7,6 +7,11 @@ use coerce::actor::scheduler::ActorType::Anonymous;
 use coerce::actor::system::ActorSystem;
 use coerce::actor::{Actor, IntoActorId, LocalActorRef, ToActorId};
 
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
 struct BenchmarkActor;
 
 impl Actor for BenchmarkActor {}
