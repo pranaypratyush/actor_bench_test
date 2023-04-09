@@ -1,11 +1,12 @@
-use criterion::{criterion_group, criterion_main, Criterion};
-use tokio::runtime::Runtime;
-
 use coerce::actor::context::ActorContext;
 use coerce::actor::message::{Handler, Message};
 use coerce::actor::scheduler::ActorType::Anonymous;
 use coerce::actor::system::ActorSystem;
-use coerce::actor::{Actor, IntoActorId, LocalActorRef, ToActorId};
+use coerce::actor::{Actor, IntoActorId, LocalActorRef};
+use criterion::{criterion_group, criterion_main, Criterion};
+use std::sync::Arc;
+use tokio::runtime::Runtime;
+use tokio::task::LocalSet;
 
 use mimalloc::MiMalloc;
 
@@ -76,6 +77,27 @@ fn create_1000_actors(c: &mut Criterion) {
     });
 }
 
+fn actor_send_receive_on_current_thread_1000_benchmark(c: &mut Criterion) {
+    // let runtime = rt();
+
+    c.bench_function("actor_send_receive_on_current_thread_1000", |b| {
+        b.iter(|| async {
+            let local = tokio::task::LocalSet::new();
+
+            let send_receive_1000 = async move {
+                let actor = actor().await;
+
+                for _ in 0..1000 {
+                    actor.send(Msg).await.unwrap();
+                }
+            };
+
+            local.spawn_local(send_receive_1000);
+            local.await;
+        });
+    });
+}
+
 async fn actor() -> LocalActorRef<BenchmarkActor> {
     let system = ActorSystem::new();
     system
@@ -88,6 +110,7 @@ criterion_group!(
     benches,
     actor_send_1000_benchmark,
     actor_notify_1000_benchmark,
-    create_1000_actors
+    create_1000_actors,
+    actor_send_receive_on_current_thread_1000_benchmark
 );
 criterion_main!(benches);
