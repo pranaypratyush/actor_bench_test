@@ -84,16 +84,29 @@ fn actor_send_receive_on_current_thread_1000_benchmark(c: &mut Criterion) {
         b.iter(|| async {
             let local = tokio::task::LocalSet::new();
 
-            let send_receive_1000 = async move {
-                let actor = actor().await;
+            // let send_receive_1000 = async move {
+            //     let actor = actor().await;
 
-                for _ in 0..1000 {
-                    actor.send(Msg).await.unwrap();
-                }
-            };
+            //     for _ in 0..1000 {
+            //         actor.send(Msg).await.unwrap();
+            //     }
+            // };
 
-            local.spawn_local(send_receive_1000);
-            local.await;
+            // local.spawn_local(send_receive_1000);
+            // local.await;
+            local
+                .run_until(async move {
+                    let send_receive_1000 = async move {
+                        let actor = actor().await;
+
+                        for _ in 0..1000 {
+                            actor.send(Msg).await.unwrap();
+                        }
+                    };
+
+                    tokio::task::spawn_local(send_receive_1000);
+                })
+                .await;
         });
     });
 }
